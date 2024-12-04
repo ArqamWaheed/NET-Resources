@@ -1,0 +1,133 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    margin: 20px;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+fieldset {
+    border: 2px solid #ccc;
+    padding: 15px;
+    margin-bottom: 300px; 
+    border-radius: 8px;
+}
+
+
+legend {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.checkbox-container {
+    margin-bottom: 20px; 
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.checkbox-container:last-child {
+    border-bottom: none;
+}
+
+.checkbox-container h4 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    color: #555;
+}
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px; 
+    margin-right: 10px; 
+    accent-color: #007bff; 
+    cursor: pointer;
+}
+
+label {
+    margin-right: 30px;
+    font-size: 1rem; 
+    color: #333;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    body {
+        margin: 10px;
+        padding: 10px;
+    }
+
+    .container {
+        padding: 15px;
+    }
+
+    legend {
+        font-size: 1rem;
+    }
+
+    .checkbox-container h4 {
+        font-size: 0.9rem;
+    }
+
+    input[type="checkbox"] {
+        width: 18px; 
+        height: 18px;
+    }
+
+    label {
+        font-size: 0.9rem;
+    }
+}
+
+.radio-container {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.correct-answer {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #ff5733;
+    margin-top: 10px;
+    padding: 5px;
+    background-color: #fff5f5;
+    border: 1px solid #ff5733;
+    border-radius: 5px;
+}
+
+.radio-container.correct {
+    background-color: lightgreen; 
+}
+
+.radio-container.incorrect {
+    background-color: lightcoral; 
+}
+
+input[type="radio"] {
+    transform: scale(1.5); 
+    margin-right: 10px;
+}
+
+label {
+    font-size: 1.1rem;
+}
+
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+}

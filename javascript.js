@@ -21,18 +21,13 @@ for (let i = 1; i <= 140; i++) {
     questionHeading.textContent = `Question ${questionNumber}`;
     div.appendChild(questionHeading);
 
-    ['A', 'B', 'C', 'D'].forEach((label) => {
+    ['A', 'B', 'C', 'D', 'E'].forEach((label) => {
         const radio = document.createElement('input');
         radio.type = 'radio';
         radio.id = `radio-${i}-${label}`;
         radio.name = `question-${i}`;
         radio.value = label;
         radio.required = true;
-
-        // Default check "C"
-        if (label === 'C') {
-            radio.checked = false;
-        }
 
         const radioLabel = document.createElement('label');
         radioLabel.htmlFor = radio.id;
@@ -61,24 +56,24 @@ scoreHeader.id = 'score-header';
 scoreHeader.style.display = 'none';
 container.insertBefore(scoreHeader, container.firstChild);
 
-const mathsScoreHeader = document.createElement('p');
-mathsScoreHeader.id = 'maths-score';
-mathsScoreHeader.style.display = 'none';
-container.insertBefore(mathsScoreHeader, scoreHeader.nextSibling);
+const scoreOutOf200Header = document.createElement('p');
+scoreOutOf200Header.id = 'score-out-of-200';
+scoreOutOf200Header.style.display = 'none';
+container.insertBefore(scoreOutOf200Header, scoreHeader.nextSibling);
 
-const physicsScoreHeader = document.createElement('p');
-physicsScoreHeader.id = 'physics-score';
-physicsScoreHeader.style.display = 'none';
-container.insertBefore(physicsScoreHeader, mathsScoreHeader.nextSibling);
+const mathsScoreDisplay = document.createElement('p');
+mathsScoreDisplay.id = 'maths-score-display';
+mathsScoreDisplay.style.display = 'none';
+container.insertBefore(mathsScoreDisplay, mathsFieldset);
 
-const equivalentScoreHeader = document.createElement('p');
-equivalentScoreHeader.id = 'equivalent-score';
-equivalentScoreHeader.style.display = 'none';
-container.insertBefore(equivalentScoreHeader, physicsScoreHeader.nextSibling);
+const physicsScoreDisplay = document.createElement('p');
+physicsScoreDisplay.id = 'physics-score-display';
+physicsScoreDisplay.style.display = 'none';
+container.insertBefore(physicsScoreDisplay, physicsFieldset);
 
 const correctAnswersInput = document.createElement('textarea');
 correctAnswersInput.id = 'correct-answers';
-correctAnswersInput.placeholder = 'Enter correct answers as A, B, C, D,... or as ABCDABCDAABCDDDA';
+correctAnswersInput.placeholder = 'Enter correct answers in order, separated by commas or directly (e.g., ABCDEABCD...)';
 correctAnswersInput.style.width = '100%';
 correctAnswersInput.style.marginBottom = '20px';
 correctAnswersInput.style.padding = '10px';
@@ -101,27 +96,38 @@ form.appendChild(submitButton);
 
 container.appendChild(form);
 
-// Warn users about unsaved changes
+// Prevent accidental tab close or refresh
+let formModified = false;
 window.addEventListener('beforeunload', (e) => {
-    e.preventDefault();
-    e.returnValue = 'Are you sure you want to leave? Your answers will be lost.';
+    if (formModified) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved progress. Are you sure you want to leave?';
+    }
 });
 
-// Form submission logic
+form.addEventListener('input', () => {
+    formModified = true;
+});
+
 form.addEventListener('submit', (e) => {
     e.preventDefault();
+    formModified = false;
 
-    let rawAnswers = correctAnswersInput.value.trim();
-    rawAnswers = rawAnswers.replace(/[\s,]/g, ''); // Remove spaces, commas
+    const rawAnswers = correctAnswersInput.value;
 
-    const correctAnswers = rawAnswers.split('').filter(answer => ['A', 'B', 'C', 'D'].includes(answer));
+    // Parse input to handle both comma-separated and direct formats
+    const correctAnswers = rawAnswers
+        .replace(/[^ABCDE]/g, '') // Remove invalid characters
+        .split('')
+        .map(answer => answer.trim().toUpperCase())
+        .filter(answer => ['A', 'B', 'C', 'D', 'E'].includes(answer));
 
     if (correctAnswers.length !== 140) {
-        alert('Please enter exactly 140 answers in valid format (e.g., ABCDABCDAABCDDDA or A, B, C).');
+        alert('Please enter exactly 140 answers in the correct format.');
         return;
     }
 
-    let totalScore = 0;
+    let score = 0;
     let mathsScore = 0;
     let physicsScore = 0;
 
@@ -138,7 +144,7 @@ form.addEventListener('submit', (e) => {
         const questionDiv = document.querySelector(`#radio-${i}-${userAnswer}`).closest('.radio-container');
 
         if (userAnswer === correctAnswer) {
-            totalScore++;
+            score++;
             questionDiv.classList.add('correct');
             if (i <= 80) mathsScore++;
             else physicsScore++;
@@ -148,22 +154,21 @@ form.addEventListener('submit', (e) => {
         }
     }
 
-    const equivalentScore = (totalScore / 140) * 200;
-
-    scoreHeader.textContent = `Total Score: ${totalScore} out of 140`;
+    // Display scores
+    scoreHeader.textContent = `Your Total Score: ${score} out of 140`;
     scoreHeader.style.display = 'block';
 
-    mathsScoreHeader.textContent = `Maths Score: ${mathsScore} out of 80`;
-    mathsScoreHeader.style.display = 'block';
+    const scoreOutOf200 = (score / 140) * 200;
+    scoreOutOf200Header.textContent = `Equivalent Score: ${scoreOutOf200.toFixed(2)} out of 200`;
+    scoreOutOf200Header.style.display = 'block';
 
-    physicsScoreHeader.textContent = `Physics Score: ${physicsScore} out of 60`;
-    physicsScoreHeader.style.display = 'block';
+    mathsScoreDisplay.textContent = `Maths Score: ${mathsScore} out of 80`;
+    mathsScoreDisplay.style.display = 'block';
+    mathsScoreDisplay.style.fontWeight = 'bold';
 
-    equivalentScoreHeader.textContent = `Equivalent Score: ${equivalentScore.toFixed(2)} out of 200`;
-    equivalentScoreHeader.style.display = 'block';
+    physicsScoreDisplay.textContent = `Physics Score: ${physicsScore} out of 60`;
+    physicsScoreDisplay.style.display = 'block';
+    physicsScoreDisplay.style.fontWeight = 'bold';
 
     window.scrollTo(0, 0);
-
-    // Remove unload warning after successful submission
-    window.removeEventListener('beforeunload', () => {});
 });

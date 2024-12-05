@@ -27,7 +27,12 @@ for (let i = 1; i <= 140; i++) {
         radio.id = `radio-${i}-${label}`;
         radio.name = `question-${i}`;
         radio.value = label;
-        radio.required = true;  
+        radio.required = true;
+
+        // Default check "C"
+        if (label === 'C') {
+            radio.checked = false;
+        }
 
         const radioLabel = document.createElement('label');
         radioLabel.htmlFor = radio.id;
@@ -56,14 +61,24 @@ scoreHeader.id = 'score-header';
 scoreHeader.style.display = 'none';
 container.insertBefore(scoreHeader, container.firstChild);
 
-const scoreOutOf200Header = document.createElement('p');
-scoreOutOf200Header.id = 'score-out-of-200';
-scoreOutOf200Header.style.display = 'none';
-container.insertBefore(scoreOutOf200Header, scoreHeader.nextSibling);
+const mathsScoreHeader = document.createElement('p');
+mathsScoreHeader.id = 'maths-score';
+mathsScoreHeader.style.display = 'none';
+container.insertBefore(mathsScoreHeader, scoreHeader.nextSibling);
+
+const physicsScoreHeader = document.createElement('p');
+physicsScoreHeader.id = 'physics-score';
+physicsScoreHeader.style.display = 'none';
+container.insertBefore(physicsScoreHeader, mathsScoreHeader.nextSibling);
+
+const equivalentScoreHeader = document.createElement('p');
+equivalentScoreHeader.id = 'equivalent-score';
+equivalentScoreHeader.style.display = 'none';
+container.insertBefore(equivalentScoreHeader, physicsScoreHeader.nextSibling);
 
 const correctAnswersInput = document.createElement('textarea');
 correctAnswersInput.id = 'correct-answers';
-correctAnswersInput.placeholder = 'Enter correct answers in order, separated by commas (e.g., A, B, C, D, ...)';
+correctAnswersInput.placeholder = 'Enter correct answers as A, B, C, D,... or as ABCDABCDAABCDDDA';
 correctAnswersInput.style.width = '100%';
 correctAnswersInput.style.marginBottom = '20px';
 correctAnswersInput.style.padding = '10px';
@@ -86,21 +101,30 @@ form.appendChild(submitButton);
 
 container.appendChild(form);
 
+// Warn users about unsaved changes
+window.addEventListener('beforeunload', (e) => {
+    e.preventDefault();
+    e.returnValue = 'Are you sure you want to leave? Your answers will be lost.';
+});
+
+// Form submission logic
 form.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    const rawAnswers = correctAnswersInput.value;
-    const correctAnswers = rawAnswers
-        .split(',')
-        .map(answer => answer.trim().toUpperCase())
-        .filter(answer => ['A', 'B', 'C', 'D'].includes(answer));
+    let rawAnswers = correctAnswersInput.value.trim();
+    rawAnswers = rawAnswers.replace(/[\s,]/g, ''); // Remove spaces, commas
+
+    const correctAnswers = rawAnswers.split('').filter(answer => ['A', 'B', 'C', 'D'].includes(answer));
 
     if (correctAnswers.length !== 140) {
-        alert('Please enter exactly 140 answers, separated by commas.');
+        alert('Please enter exactly 140 answers in valid format (e.g., ABCDABCDAABCDDDA or A, B, C).');
         return;
     }
 
-    let score = 0;
+    let totalScore = 0;
+    let mathsScore = 0;
+    let physicsScore = 0;
+
     for (let i = 1; i <= 140; i++) {
         const selectedRadio = document.querySelector(`input[name="question-${i}"]:checked`);
         if (!selectedRadio) {
@@ -114,20 +138,32 @@ form.addEventListener('submit', (e) => {
         const questionDiv = document.querySelector(`#radio-${i}-${userAnswer}`).closest('.radio-container');
 
         if (userAnswer === correctAnswer) {
-            score++;
+            totalScore++;
             questionDiv.classList.add('correct');
+            if (i <= 80) mathsScore++;
+            else physicsScore++;
         } else {
             questionDiv.classList.add('incorrect');
             questionDiv.querySelector('.correct-answer').textContent = `Correct answer: ${correctAnswer}`;
         }
     }
 
-    scoreHeader.textContent = `Your Score: ${score} out of 140`;
+    const equivalentScore = (totalScore / 140) * 200;
+
+    scoreHeader.textContent = `Total Score: ${totalScore} out of 140`;
     scoreHeader.style.display = 'block';
 
-    const scoreOutOf200 = (score / 140) * 200;
-    scoreOutOf200Header.textContent = `Your Score: ${scoreOutOf200.toFixed(2)} out of 200`;
-    scoreOutOf200Header.style.display = 'block';
+    mathsScoreHeader.textContent = `Maths Score: ${mathsScore} out of 80`;
+    mathsScoreHeader.style.display = 'block';
+
+    physicsScoreHeader.textContent = `Physics Score: ${physicsScore} out of 60`;
+    physicsScoreHeader.style.display = 'block';
+
+    equivalentScoreHeader.textContent = `Equivalent Score: ${equivalentScore.toFixed(2)} out of 200`;
+    equivalentScoreHeader.style.display = 'block';
 
     window.scrollTo(0, 0);
+
+    // Remove unload warning after successful submission
+    window.removeEventListener('beforeunload', () => {});
 });

@@ -1,5 +1,6 @@
 const container = document.querySelector(".container");
 
+// Create fieldsets for sections
 const mathsFieldset = document.createElement('fieldset');
 const mathsLegend = document.createElement('legend');
 mathsLegend.textContent = 'Maths';
@@ -10,47 +11,57 @@ const physicsLegend = document.createElement('legend');
 physicsLegend.textContent = 'Physics';
 physicsFieldset.appendChild(physicsLegend);
 
-for (let i = 1; i <= 140; i++) {
-    const div = document.createElement('div');
-    div.classList.add('radio-container');
+const englishFieldset = document.createElement('fieldset');
+const englishLegend = document.createElement('legend');
+englishLegend.textContent = 'English';
+englishFieldset.appendChild(englishLegend);
 
-    const isMaths = i <= 80;
-    const questionNumber = isMaths ? i : i - 80;
+// Function to create questions dynamically
+const createQuestions = (start, end, fieldset, sectionStart) => {
+    for (let i = start; i <= end; i++) {
+        const div = document.createElement('div');
+        div.classList.add('radio-container');
 
-    const questionHeading = document.createElement('h4');
-    questionHeading.textContent = `Question ${questionNumber}`;
-    div.appendChild(questionHeading);
+        const questionNumber = i - sectionStart + 1;
 
-    ['A', 'B', 'C', 'D', 'E'].forEach((label) => {
-        const radio = document.createElement('input');
-        radio.type = 'radio';
-        radio.id = `radio-${i}-${label}`;
-        radio.name = `question-${i}`;
-        radio.value = label;
-        radio.required = true;
+        const questionHeading = document.createElement('h4');
+        questionHeading.textContent = `Question ${questionNumber}`;
+        div.appendChild(questionHeading);
 
-        const radioLabel = document.createElement('label');
-        radioLabel.htmlFor = radio.id;
-        radioLabel.textContent = label;
+        ['A', 'B', 'C', 'D', 'E'].forEach((label) => {
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.id = `radio-${i}-${label}`;
+            radio.name = `question-${i}`;
+            radio.value = label;
+            radio.required = true;
 
-        div.appendChild(radio);
-        div.appendChild(radioLabel);
-    });
+            const radioLabel = document.createElement('label');
+            radioLabel.htmlFor = radio.id;
+            radioLabel.textContent = label;
 
-    const correctAnswerDiv = document.createElement('div');
-    correctAnswerDiv.classList.add('correct-answer');
-    div.appendChild(correctAnswerDiv);
+            div.appendChild(radio);
+            div.appendChild(radioLabel);
+        });
 
-    if (isMaths) {
-        mathsFieldset.appendChild(div);
-    } else {
-        physicsFieldset.appendChild(div);
+        const correctAnswerDiv = document.createElement('div');
+        correctAnswerDiv.classList.add('correct-answer');
+        div.appendChild(correctAnswerDiv);
+
+        fieldset.appendChild(div);
     }
-}
+};
+
+// Create sections
+createQuestions(1, 80, mathsFieldset, 1);
+createQuestions(81, 140, physicsFieldset, 81);
+createQuestions(141, 160, englishFieldset, 141);
 
 container.appendChild(mathsFieldset);
 container.appendChild(physicsFieldset);
+container.appendChild(englishFieldset);
 
+// Add form elements
 const scoreHeader = document.createElement('h2');
 scoreHeader.id = 'score-header';
 scoreHeader.style.display = 'none';
@@ -62,18 +73,23 @@ scoreOutOf200Header.style.display = 'none';
 container.insertBefore(scoreOutOf200Header, scoreHeader.nextSibling);
 
 const mathsScoreDisplay = document.createElement('p');
-mathsScoreDisplay.id = 'maths-score-display';
+mathsScoreDisplay.id = 'maths-score';
 mathsScoreDisplay.style.display = 'none';
-container.insertBefore(mathsScoreDisplay, mathsFieldset);
+container.insertBefore(mathsScoreDisplay, scoreOutOf200Header.nextSibling);
 
 const physicsScoreDisplay = document.createElement('p');
-physicsScoreDisplay.id = 'physics-score-display';
+physicsScoreDisplay.id = 'physics-score';
 physicsScoreDisplay.style.display = 'none';
-container.insertBefore(physicsScoreDisplay, physicsFieldset);
+container.insertBefore(physicsScoreDisplay, mathsScoreDisplay.nextSibling);
+
+const englishScoreDisplay = document.createElement('p');
+englishScoreDisplay.id = 'english-score';
+englishScoreDisplay.style.display = 'none';
+container.insertBefore(englishScoreDisplay, physicsScoreDisplay.nextSibling);
 
 const correctAnswersInput = document.createElement('textarea');
 correctAnswersInput.id = 'correct-answers';
-correctAnswersInput.placeholder = 'Enter correct answers in order, separated by commas or directly (e.g., ABCDEABCD...)';
+correctAnswersInput.placeholder = 'Enter correct answers for 160 questions, separated by commas or directly (e.g., ABCDA...)';
 correctAnswersInput.style.width = '100%';
 correctAnswersInput.style.marginBottom = '20px';
 correctAnswersInput.style.padding = '10px';
@@ -92,21 +108,21 @@ form.id = 'quiz-form';
 form.appendChild(correctAnswersInput);
 form.appendChild(mathsFieldset);
 form.appendChild(physicsFieldset);
+form.appendChild(englishFieldset);
 form.appendChild(submitButton);
 
 container.appendChild(form);
 
-// Prevent accidental tab close or refresh
 let formModified = false;
+form.addEventListener('input', () => {
+    formModified = true;
+});
+
 window.addEventListener('beforeunload', (e) => {
     if (formModified) {
         e.preventDefault();
-        e.returnValue = 'You have unsaved progress. Are you sure you want to leave?';
+        e.returnValue = '';
     }
-});
-
-form.addEventListener('input', () => {
-    formModified = true;
 });
 
 form.addEventListener('submit', (e) => {
@@ -117,21 +133,22 @@ form.addEventListener('submit', (e) => {
 
     // Parse input to handle both comma-separated and direct formats
     const correctAnswers = rawAnswers
-        .replace(/[^ABCDE]/g, '') // Remove invalid characters
+        .replace(/[^ABCDE]/g, '')
         .split('')
         .map(answer => answer.trim().toUpperCase())
         .filter(answer => ['A', 'B', 'C', 'D', 'E'].includes(answer));
 
-    if (correctAnswers.length !== 140) {
-        alert('Please enter exactly 140 answers in the correct format.');
+    if (correctAnswers.length !== 160) {
+        alert('Please enter exactly 160 answers in the correct format.');
         return;
     }
 
     let score = 0;
     let mathsScore = 0;
     let physicsScore = 0;
+    let englishScore = 0;
 
-    for (let i = 1; i <= 140; i++) {
+    for (let i = 1; i <= 160; i++) {
         const selectedRadio = document.querySelector(`input[name="question-${i}"]:checked`);
         if (!selectedRadio) {
             alert(`Please answer Question ${i}`);
@@ -147,7 +164,8 @@ form.addEventListener('submit', (e) => {
             score++;
             questionDiv.classList.add('correct');
             if (i <= 80) mathsScore++;
-            else physicsScore++;
+            else if (i <= 140) physicsScore++;
+            else englishScore++;
         } else {
             questionDiv.classList.add('incorrect');
             questionDiv.querySelector('.correct-answer').textContent = `Correct answer: ${correctAnswer}`;
@@ -155,20 +173,21 @@ form.addEventListener('submit', (e) => {
     }
 
     // Display scores
-    scoreHeader.textContent = `Your Total Score: ${score} out of 140`;
+    scoreHeader.textContent = `Your Total Score: ${score} out of 160`;
     scoreHeader.style.display = 'block';
 
-    const scoreOutOf200 = (score / 140) * 200;
+    const scoreOutOf200 = (score / 160) * 200;
     scoreOutOf200Header.textContent = `Equivalent Score: ${scoreOutOf200.toFixed(2)} out of 200`;
     scoreOutOf200Header.style.display = 'block';
 
     mathsScoreDisplay.textContent = `Maths Score: ${mathsScore} out of 80`;
     mathsScoreDisplay.style.display = 'block';
-    mathsScoreDisplay.style.fontWeight = 'bold';
 
     physicsScoreDisplay.textContent = `Physics Score: ${physicsScore} out of 60`;
     physicsScoreDisplay.style.display = 'block';
-    physicsScoreDisplay.style.fontWeight = 'bold';
+
+    englishScoreDisplay.textContent = `English Score: ${englishScore} out of 20`;
+    englishScoreDisplay.style.display = 'block';
 
     window.scrollTo(0, 0);
 });
